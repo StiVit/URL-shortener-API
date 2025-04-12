@@ -6,8 +6,11 @@ import (
 	"os"
 
 	"github.com/StiVit/URL-shortener-API/internal/config"
+	"github.com/StiVit/URL-shortener-API/internal/http-server/middleware/logger"
 	"github.com/StiVit/URL-shortener-API/internal/lib/logger/sl"
 	"github.com/StiVit/URL-shortener-API/internal/storage/sqlite"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/joho/godotenv"
 )
 
@@ -41,8 +44,16 @@ func main() {
 	_ = storage
 
 	// TODO: init router: chi, " chi render"
+	router := chi.NewRouter()
 
-	// TODO: init server: 
+	// middleware
+	router.Use(middleware.RequestID)
+	router.Use(middleware.Logger)
+	router.Use(logger.New(log))
+	router.Use(middleware.Recoverer) // If the handler panics, this recovers and writes a 500
+	router.Use(middleware.URLFormat) // If the URL is not valid, this middleware will return a 400 Bad Request
+
+	// TODO: init server
 
 }
 
