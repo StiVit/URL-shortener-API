@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/StiVit/URL-shortener-API/internal/config"
+	"github.com/StiVit/URL-shortener-API/internal/http-server/handlers/url/save"
 	"github.com/StiVit/URL-shortener-API/internal/http-server/middleware/logger"
 	"github.com/StiVit/URL-shortener-API/internal/lib/logger/sl"
 	"github.com/StiVit/URL-shortener-API/internal/storage/sqlite"
@@ -53,6 +54,7 @@ func main() {
 	router.Use(middleware.Recoverer) // If the handler panics, this recovers and writes a 500
 	router.Use(middleware.URLFormat) // If the URL is not valid, this middleware will return a 400 Bad Request
 
+	router.Post("/url", save.New(log, storage))
 	// TODO: init server
 
 }
