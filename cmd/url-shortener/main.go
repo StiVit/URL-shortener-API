@@ -57,10 +57,16 @@ func main() {
 	router.Use(middleware.Recoverer) // If the handler panics, this recovers and writes a 500
 	router.Use(middleware.URLFormat) // If the URL is not v alid, this middleware will return a 400 Bad Request
  
-	router.Post("/url", save.New(log, storage)) 
+	router.Route("/url", func(r chi.Router) {
+		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
+			config.HTTPServer.User: config.HTTPServer.Password,
+		}))
+
+		r.Post("/", save.New(log, storage)) 
+		r.Delete("/{alias}", delete.New(log, storage))
+	})
+
 	router.Get("/{alias}", redirect.New(log, storage))
-	// TODO: Write the delete handler
-	router.Delete("/{alias}", delete.New(log, storage))
 	// init server
 
 	log.Info("starting server", slog.String("address", config.Address))
