@@ -7,6 +7,8 @@ import (
 	"os"
 
 	"github.com/StiVit/URL-shortener-API/internal/config"
+	"github.com/StiVit/URL-shortener-API/internal/http-server/handlers/delete"
+	"github.com/StiVit/URL-shortener-API/internal/http-server/handlers/redirect"
 	"github.com/StiVit/URL-shortener-API/internal/http-server/handlers/url/save"
 	"github.com/StiVit/URL-shortener-API/internal/http-server/middleware/logger"
 	"github.com/StiVit/URL-shortener-API/internal/lib/logger/sl"
@@ -27,16 +29,16 @@ func main() {
         log.Fatalf("Error loading .env file: %v", err)
     }
 
-	// TODO: init config: cleanenv
+	// init config: cleanenv
 	config := config.MustLoad()
 
-	// TODO: init logger: slog
+	// init logger: slog
 	log := setupLogger(config.Env)
 	log.Info("Starting URL Shortener API", "env", config.Env)
 	log.Debug("Debug messages are enabled")
 
 
-	// TODO: init storage: sqlite
+	// init storage: sqlite
 	storage, err := sqlite.New(config.StoragePath)
 	if err != nil {
 		log.Error("Failed to initialize storage", sl.Err(err))
@@ -45,7 +47,7 @@ func main() {
 
 	_ = storage
 
-	// TODO: init router: chi, " chi render"
+	// init router: chi, " chi render"
 	router := chi.NewRouter()
 
 	// middleware
@@ -56,7 +58,10 @@ func main() {
 	router.Use(middleware.URLFormat) // If the URL is not v alid, this middleware will return a 400 Bad Request
  
 	router.Post("/url", save.New(log, storage)) 
-	// TODO: init server
+	router.Get("/{alias}", redirect.New(log, storage))
+	// TODO: Write the delete handler
+	router.Delete("/{alias}", delete.New(log, storage))
+	// init server
 
 	log.Info("starting server", slog.String("address", config.Address))
 
